@@ -6,7 +6,9 @@ import express from 'express';
 const router = express.Router();
 
 router.get('/', NoteController.getNotes);
-router.post('/add', NoteController.createNote);
 router.get('/:noteId', NoteController.getNote);
+router.post('/add', NoteController.createNote);
+router.patch('/update/:noteId', NoteController.updateNote);
+router.delete('/delete/:noteId', NoteController.deleteNote);
 
 export default router;
