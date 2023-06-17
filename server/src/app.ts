@@ -2,12 +2,14 @@ import express, { Express, NextFunction, Request, Response } from 'express';
 import 'dotenv/config';
 import noteRoutes from './routes/note';
 import morgan from 'morgan';
+import cors from 'cors';
 import createHttpError, { isHttpError } from 'http-errors';
 
 const app: Express = express();
 
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(cors());
 
 //! here we store the routing logic in a separate file
 app.use('/api/notes', noteRoutes);

@@ -11,6 +11,7 @@ export const getNotes: RequestHandler = async (
   next: NextFunction
 ) => {
   try {
+    // throw createHttpError(401);
     const notes = await NoteModel.find().exec();
 
     res.status(200).json(notes);
