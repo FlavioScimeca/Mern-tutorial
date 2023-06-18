@@ -7,9 +7,16 @@ import createHttpError, { isHttpError } from 'http-errors';
 
 const app: Express = express();
 
+const corsOptions = {
+  origin: '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  preflightContinue: true,
+  optionsSuccessStatus: 204,
+};
+
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(cors());
+app.use(cors(corsOptions));
 
 //! here we store the routing logic in a separate file
 app.use('/api/notes', noteRoutes);

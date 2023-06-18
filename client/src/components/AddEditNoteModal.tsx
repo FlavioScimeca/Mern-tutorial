@@ -6,12 +6,14 @@ import * as NotesApi from '../network/notes_api';
 import { Note } from '../model/interfaces';
 
 interface AddNoteDialogProps {
+  noteToEdit?: Note;
   isOpen?: boolean;
   onClose: () => void;
   onNoteSaved: (note: Note) => void;
 }
 
-const AddNoteDialog = ({
+const AddEditNoteDialog = ({
+  noteToEdit,
   isOpen,
   onClose,
   onNoteSaved,
@@ -20,11 +22,22 @@ const AddNoteDialog = ({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<NoteInput>();
+  } = useForm<NoteInput>({
+    defaultValues: {
+      title: noteToEdit?.title || '',
+      text: noteToEdit?.text || '',
+    },
+  });
 
   async function onSubmit(input: NoteInput) {
     try {
-      const noteResponse = await NotesApi.createNotes(input);
+      let noteResponse: Note;
+      if (noteToEdit) {
+        noteResponse = await NotesApi.updateNote(noteToEdit._id, input);
+      } else {
+        noteResponse = await NotesApi.createNote(input);
+      }
+
       onNoteSaved(noteResponse);
     } catch (error) {
       console.log(error);
@@ -55,6 +68,7 @@ const AddNoteDialog = ({
         </Transition.Child>
 
         <form
+          id="AddEditNote"
           className="fixed inset-0 overflow-y-auto"
           onSubmit={handleSubmit(onSubmit)}
         >
@@ -87,12 +101,14 @@ const AddNoteDialog = ({
                     type="text"
                     id="small-input"
                     className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 sm:text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    {...register('title', { required: true })}
+                    {...register('title', { required: 'Title is required' })}
                   />
-                  <p className="mt-2 text-sm text-red-600">
-                    <span className="font-medium">Alright!</span>
-                    {errors.title?.message}
-                  </p>
+                  {errors.title?.message && (
+                    <p className="mt-2 text-sm text-red-600 p-2 rounded-md border-[1px] border-red-600">
+                      <span className="font-medium mr-2">Alert</span>
+                      {errors.title?.message}
+                    </p>
+                  )}
                 </div>
                 <div className="mt-2">
                   <label
@@ -106,22 +122,30 @@ const AddNoteDialog = ({
                     rows={4}
                     className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="Leave a comment..."
-                    {...register('text', { required: true })}
+                    {...register('text')}
                   ></textarea>
-                  <p className="mt-2 text-sm text-red-600">
-                    <span className="font-medium">Alright!</span>
-                    {errors.text?.message}
-                  </p>
                 </div>
 
                 <div className="mt-4">
                   <button
                     type="submit"
+                    form="AddEditNote"
                     disabled={isSubmitting}
                     className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                     onClick={onCloseDialog}
                   >
-                    Create
+                    {isSubmitting
+                      ? 'Loading..'
+                      : noteToEdit
+                      ? 'Edit'
+                      : 'Create'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onClose()}
+                    className="ml-2 inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  >
+                    Close
                   </button>
                 </div>
               </Dialog.Panel>
@@ -133,4 +157,4 @@ const AddNoteDialog = ({
   );
 };
 
-export default AddNoteDialog;
+export default AddEditNoteDialog;
